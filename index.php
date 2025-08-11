@@ -59,7 +59,7 @@ background-image: linear-gradient(315deg, #191714 -120%,  #2234ae 120%);">
                 <li class="sidebar-btn" id="dashboard">
                     <a href="<?php echo 'http://172.16.1.13:8000/1_DPS' ?>">
                         <i class="menu-icon fa fa-table"></i>
-                        <span class="menu-text">DELIVERY PLAN<?php echo randomNum(); ?></span>
+                        <span class="menu-text">DELIVERY PLAN</span>
                     </a>
                 </li>
             </ul>
