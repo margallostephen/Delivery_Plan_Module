@@ -1,8 +1,8 @@
 <?php
 require 'vendor/autoload.php';
+require_once __DIR__ . '/utils/php/generateExcelReport.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\{Fill, Conditional, Alignment, Border, Color};
 
@@ -67,7 +67,6 @@ foreach ($data as $row) {
 
             $startCol = $startCol ?: $col;
             $endCol = $col;
-
         } else {
             $cell->setValue($value);
         }
@@ -206,9 +205,11 @@ foreach (range('A', 'E') as $col) {
 $sheet->setAutoFilter("A3:{$lastCol}3");
 $sheet->freezePane('D4');
 
+$excelData = generateExcelReport($spreadsheet);
+
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header("Content-Disposition: attachment; filename=\"{$downloadDate}_Delivery_Plan.xlsx\"");
 header('Cache-Control: max-age=0');
 
-(new Xlsx($spreadsheet))->save('php://output');
+echo $excelData;
 exit;
