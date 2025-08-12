@@ -1,12 +1,12 @@
 <?php
+require_once __DIR__ . '/utils/php/numToAlpha.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
     $conn = new mysqli("localhost", "root", "", "1_dps");
     if ($conn->connect_error)
         exit(json_encode(['success' => false, 'message' => 'Connection failed: ' . $conn->connect_error]));
 
-    $selectedDate = $_POST['selected_date'];
+    $selectedDate = $_POST['selected_date'] ?? null;
 
     $where = "";
     $params = [];
@@ -54,16 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param("s", $selectedDate);
     $stmt->execute();
     $result = $stmt->get_result();
-
-    function numToAlpha($index)
-    {
-        $alpha = '';
-        while ($index >= 0) {
-            $alpha = chr(97 + ($index % 26)) . $alpha;
-            $index = intdiv($index, 26) - 1;
-        }
-        return $alpha;
-    }
 
     $deliveryData = [];
 
@@ -129,7 +119,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $item['_balance_dates'] = $balances;
-
     }
     unset($item);
 
@@ -157,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $deliveryData = array_values($deliveryData);
     $formattedTimestamp = $latestImportDatetime ? date("Y-m-d h:i:s A", strtotime($latestImportDatetime)) : null;
-    
+
     echo json_encode([
         'success' => true,
         'selectedDate' => $selectedDate,
@@ -166,4 +155,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ], JSON_THROW_ON_ERROR);
 
     $conn->close();
+    exit;
 }
