@@ -1,5 +1,6 @@
 <?php
 require 'vendor/autoload.php';
+
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -7,7 +8,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 date_default_timezone_set(timezoneId: 'Asia/Manila');
 
-$templatePath = __DIR__ . '/../uploads/formats/Delivery_Plan_Import_Format.xlsx';
+$templatePath = __DIR__ . '/uploads/formats/Delivery_Plan_Import_Format.xlsx';
 
 $reader = IOFactory::createReader('Xlsx');
 $reader->setLoadSheetsOnly(['DELIVERY PLAN']);
@@ -66,7 +67,6 @@ if ((int) $end->format('j') === 31) {
 $deliverySheet->getStyle('G2')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new Color(Color::COLOR_BLACK));
 $deliverySheet->setSelectedCell('A5');
 
-// Output
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header('Content-Disposition: attachment; filename="Delivery_Plan_Import_Format.xlsx"');
 header('Cache-Control: max-age=0');
