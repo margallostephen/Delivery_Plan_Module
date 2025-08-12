@@ -3,7 +3,9 @@ $("#downloadFormatBtn").click(function () {
     $('#btn-dl-icon').removeClass('fa-table').addClass('fa-spinner fa-spin');
     $('#downloadFormatBtn').prop('disabled', true);
 
-    fetch('/Delivery_Plan_Module/download_format.php')
+    fetch('/Delivery_Plan_Module/download_format.php', {
+        method: 'POST',
+    })
         .then(res => res.blob())
         .then(blob => {
             const url = URL.createObjectURL(blob);
