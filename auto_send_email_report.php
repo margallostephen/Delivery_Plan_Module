@@ -49,7 +49,7 @@ try {
         $mail->addAddress(trim($email), trim($name));
     }
 
-    $mail->Subject = 'Delivery Plan Report - ' . date('Y-m-d');
+    $mail->Subject = 'Delivery Plan Report ' . '(' . date('Y-m-d') . ')';
     $mail->isHTML(true);
     $mail->Body = '
         <b>This is an E-Mail sent via PTPI - SYSTEM auto-generated mail. Please do not reply.</b><br><br>
@@ -61,7 +61,7 @@ try {
         <b>FG Management System (FGMS)</b>
     ';
 
-    $excelData = fetchDataFromDataPhp('export_excel.php', false);
+    $excelData = fetchDataFromDataPhp('export_excel', false);
     $filename = date('Ymd_His') . "_Delivery_Plan.xlsx";
 
     $mail->addStringAttachment(
