@@ -112,9 +112,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($colIndex >= 6) {
                 $cell->getStyle()->getNumberFormat()->setFormatCode('#,##0;(#,##0);"-";@');
-                $cell->getStyle()
+                $cell
+                    ->getStyle()
                     ->getAlignment()
-                    ->setHorizontal(Alignment::HORIZONTAL_RIGHT)
+                    ->setHorizontal($colIndex < 6 ? Alignment::HORIZONTAL_LEFT : Alignment::HORIZONTAL_RIGHT)
                     ->setVertical(Alignment::VERTICAL_CENTER);
 
                 if ($value === '' || $value === '-') {
@@ -129,8 +130,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $cell->setValue($value);
             }
 
+            if ($colIndex != 3) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            } else {
+                $sheet->getColumnDimension($col)->setWidth(70);
+            }
 
-            $sheet->getColumnDimension($col)->setAutoSize(true);
             $colIndex++;
         }
 
@@ -219,19 +224,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    foreach (range('A', 'F') as $col) {
-        $sheet->getStyle($col . '4:' . $col . $highestRow)
-            ->getAlignment()
-            ->setHorizontal($col != 'F' ? Alignment::HORIZONTAL_LEFT : Alignment::HORIZONTAL_RIGHT)
-            ->setVertical(Alignment::VERTICAL_CENTER);
-
-        if ($col == 'C') {
-            $sheet->getColumnDimension($col)->setWidth(75);
-        } else {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-    }
-
     foreach ([[$firstPlanIndex, $lastPlanIndex], [$firstBalIndex, $lastBalIndex]] as [$start, $end]) {
         for ($i = $start + 5; $i <= $end; $i++) {
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($i))
@@ -240,6 +232,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    $sheet->calculateColumnWidths();
     $sheet->setAutoFilter("A4:{$lastCol}4");
     $sheet->freezePane("D{$rowDataIndex}");
     $sheet->setSelectedCell("A3");
