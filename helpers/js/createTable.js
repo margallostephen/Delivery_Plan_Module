@@ -1,5 +1,6 @@
 function createTable(id, planColumns) {
     return new Tabulator(`#${id}`, {
+        height: "695px",
         layout: "fitDataFill",
         autoResize: true,
         pagination: "local",
