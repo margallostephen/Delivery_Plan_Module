@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($data)) {
         $sendEmail = true;
-        $input = fetchDataFromDataPhp('data.php');
+        $input = fetchDataFromDataPhp('data');
         $data = $input['delivery_plan'];
         $importDate = new DateTime($input['latestImportDatetime']);
     } else {
@@ -25,41 +25,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $downloadDate = (new DateTime())->format('Ymd_His');
 
     $spreadsheet = new Spreadsheet();
+    $spreadsheet->getDefaultStyle()->getFont()
+        ->setName('Tahoma')
+        ->setSize(10);
+
     $sheet = $spreadsheet->getActiveSheet();
+    $sheet->getDefaultRowDimension()->setRowHeight(15);
     $sheet->setTitle($importDate->format('Ymd_His'));
 
     $headers = ['CUSTOMER', 'PART NUMBER', 'ITEM NAME', 'REFERENCE', 'LOCATION', 'BACKLOG'];
+    $planDays = [];
+    $rowDataIndex = 5;
     $start = new DateTime($importDate->format('Y-m-d'));
-    $end = (clone $start)->modify('last day of this month');
+    $end   = (clone $start)->modify('+1 month');
 
-    foreach (new DatePeriod($start, new DateInterval('P1D'), (clone $end)->modify('+1 day')) as $date) {
-        $headers[] = $date->format('Y-m-d');
-        $planDates[] = $date->format('Y-m-d');
+    for ($dt = clone $start; $dt < $end; $dt->modify('+1 day')) {
+        $md = $dt->format('m-d');
+        $headers[] = $md;
+        $planDates[] = $md;
+        $planDays[] = $dt->format('D');
     }
+
     $headers[] = 'FG';
-    foreach (new DatePeriod($start, new DateInterval('P1D'), (clone $end)->modify('+1 day')) as $date) {
-        $headers[] = $date->format('Y-m-d');
+
+    for ($dt = clone $start; $dt < $end; $dt->modify('+1 day')) {
+        $headers[] = $dt->format('m-d');
     }
+
+    $headerStyle = [
+        'font'      => [
+            'bold' => true
+        ],
+        'alignment' => [
+            'horizontal' => Alignment::HORIZONTAL_CENTER,
+            'vertical'   => Alignment::VERTICAL_CENTER,
+            'wrapText'   => true
+        ],
+        'fill'      => [
+            'fillType' => Fill::FILL_SOLID,
+            'color'    => ['argb' => 'DCE6F1']
+        ]
+    ];
+
+    $fgIndex = array_search('FG', $headers, true) + 1;
+    $backlogIndex = array_search('BACKLOG', $headers, true) + 1;
+    $firstPlanIndex = array_search($planDates[0], $headers, true) + 1;
+    $firstBalIndex = $fgIndex + 1;
+    $lastBalIndex = $firstBalIndex + count($planDates) - 1;
+    $lastPlanIndex = $fgIndex - 1;
+    $dayIndex = 0;
+
+    $fgCol = Coordinate::stringFromColumnIndex($fgIndex);
+    $backlogCol = Coordinate::stringFromColumnIndex($backlogIndex);
+    $firstPlanCol = Coordinate::stringFromColumnIndex($firstPlanIndex);
+    $firstBalCol = Coordinate::stringFromColumnIndex($firstBalIndex);
+    $lastPlanCol = Coordinate::stringFromColumnIndex($lastPlanIndex);
 
     foreach ($headers as $i => $header) {
         $col = Coordinate::stringFromColumnIndex($i + 1);
-        $sheet->setCellValue("{$col}3", strtoupper($header));
-        $sheet->getStyle("{$col}3")->applyFromArray([
-            'font' => ['bold' => true],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER
-            ],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'color' => ['argb' => 'DCE6F1']
-            ]
+        $headerCell = "{$col}3";
+        $cellDay = "{$col}4";
 
-        ]);
-        $sheet->getColumnDimension($col)->setAutoSize(true);
+        $sheet->setCellValue($headerCell, strtoupper($header));
+
+        if ($i < 6 || $dayIndex == 31) {
+            $sheet->mergeCells("{$headerCell}:{$cellDay}");
+            $dayIndex = 0;
+        } else {
+            $sheet->setCellValue($cellDay, $planDays[$dayIndex]);
+            $sheet->getStyle($cellDay)->applyFromArray($headerStyle);
+            $dayIndex++;
+        }
+
+        $sheet->getStyle($headerCell)->applyFromArray($headerStyle);
     }
 
-    $rowIndex = 4;
+    $rowIndex = $rowDataIndex;
     foreach ($data as $row) {
         $colIndex = 1;
         $startCol = $endCol = null;
@@ -71,6 +112,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($colIndex >= 6) {
                 $cell->getStyle()->getNumberFormat()->setFormatCode('#,##0;(#,##0);"-";@');
+                $cell->getStyle()
+                    ->getAlignment()
+                    ->setHorizontal(Alignment::HORIZONTAL_RIGHT)
+                    ->setVertical(Alignment::VERTICAL_CENTER);
 
                 if ($value === '' || $value === '-') {
                     $cell->setValue(0);
@@ -83,14 +128,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $cell->setValue($value);
             }
+
+
+            $sheet->getColumnDimension($col)->setAutoSize(true);
             $colIndex++;
         }
 
         if ($startCol && $endCol) {
-            $fgIndex = array_search('FG', $headers, true) + 1;
-            $fgCol = Coordinate::stringFromColumnIndex($fgIndex + 1);
-
-            $range = "{$fgCol}{$rowIndex}:{$endCol}{$rowIndex}";
+            $range = "{$firstBalCol}{$rowIndex}:{$endCol}{$rowIndex}";
 
             $cond = (new Conditional())
                 ->setConditionType(Conditional::CONDITION_CELLIS)
@@ -106,40 +151,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sheet->getStyle($range)->setConditionalStyles($styles);
         }
 
-        $backlogIndex = array_search('BACKLOG', $headers, true) + 1;
-        if ($backlogIndex) {
-            $backlogCol = Coordinate::stringFromColumnIndex($backlogIndex);
-            $range = "{$backlogCol}{$rowIndex}:{$backlogCol}{$rowIndex}";
+        $range = "{$backlogCol}{$rowIndex}:{$backlogCol}{$rowIndex}";
 
-            $backlogCond = (new Conditional())
-                ->setConditionType(Conditional::CONDITION_CELLIS)
-                ->setOperatorType(Conditional::OPERATOR_GREATERTHAN)
-                ->addCondition('0');
-            $backlogCond->getStyle()->getFont()->setBold(true)
-                ->getColor()->setARGB(Color::COLOR_RED);
+        $backlogCond = (new Conditional())
+            ->setConditionType(Conditional::CONDITION_CELLIS)
+            ->setOperatorType(Conditional::OPERATOR_GREATERTHAN)
+            ->addCondition('0');
+        $backlogCond->getStyle()->getFont()->setBold(true)
+            ->getColor()->setARGB(Color::COLOR_RED);
 
-            $styles = $sheet->getStyle($range)->getConditionalStyles();
-            $styles[] = $backlogCond;
-            $sheet->getStyle($range)->setConditionalStyles($styles);
-        }
+        $styles = $sheet->getStyle($range)->getConditionalStyles();
+        $styles[] = $backlogCond;
+        $sheet->getStyle($range)->setConditionalStyles($styles);
 
-        $fgIndex = array_search('FG', $headers, true) + 1;
-        $fgCol = Coordinate::stringFromColumnIndex($fgIndex);
-        $backlogCol = Coordinate::stringFromColumnIndex(array_search('BACKLOG', $headers, true) + 1);
-
-        $firstBalanceIndex = $fgIndex + 1;
-        $firstPlanDateCol = Coordinate::stringFromColumnIndex(array_search($planDates[0], $headers, true) + 1);
-
-        $firstBalanceCol = Coordinate::stringFromColumnIndex($firstBalanceIndex);
         $sheet->setCellValue(
-            "{$firstBalanceCol}{$rowIndex}",
-            "={$fgCol}{$rowIndex}-{$backlogCol}{$rowIndex}-{$firstPlanDateCol}{$rowIndex}"
+            "{$firstBalCol}{$rowIndex}",
+            "={$fgCol}{$rowIndex}-{$backlogCol}{$rowIndex}-{$firstPlanCol}{$rowIndex}"
         );
 
-        for ($colIndexBal = $firstBalanceIndex + 1; $colIndexBal <= count($headers); $colIndexBal++) {
-            $currentBalanceCol = Coordinate::stringFromColumnIndex($colIndexBal);
-            $prevBalanceCol = Coordinate::stringFromColumnIndex($colIndexBal - 1);
-            $planQtyCol = Coordinate::stringFromColumnIndex($colIndexBal - $fgIndex - 1 + array_search($planDates[0], $headers, true) + 1);
+        for ($currBalIndex = $firstBalIndex + 1; $currBalIndex <= count($headers); $currBalIndex++) {
+            $currentBalanceCol = Coordinate::stringFromColumnIndex($currBalIndex);
+            $prevBalanceCol = Coordinate::stringFromColumnIndex($currBalIndex - 1);
+            $planQtyCol = Coordinate::stringFromColumnIndex($currBalIndex - $fgIndex - 1 + $firstPlanIndex);
 
             $sheet->setCellValue(
                 "{$currentBalanceCol}{$rowIndex}",
@@ -163,60 +196,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ]);
 
     $highestRow = $sheet->getHighestRow();
-    $fgPrevColIndex = $fgIndex - 1;
-    $fgPrevCol = Coordinate::stringFromColumnIndex($fgPrevColIndex);
 
     foreach ([1 => 'With Delivery Issue', 2 => 'Without Delivery Issue'] as $row => $text) {
-        $cellMerge = "{$fgPrevCol}{$row}:{$fgCol}{$row}";
-
-        $sheet->mergeCells($cellMerge)
-            ->setCellValue("{$fgPrevCol}{$row}", $text);
-        $sheet->getStyle($cellMerge)
-            ->applyFromArray([
-                'font' => [
-                    'bold' => true,
-                    "color" => ['argb' => ($row == 1) ? 'FF9C0006' : 'FF006100']
-                ],
-                'alignment' => [
-                    'horizontal' => Alignment::HORIZONTAL_RIGHT,
-                    'vertical' => Alignment::VERTICAL_CENTER
-                ],
-                'fill' => [
-                    'fillType' => Fill::FILL_SOLID,
-                    'color' => ['argb' => ($row == 1) ? 'FFFFC7CE' : 'FFC6EFCE']
-                ]
-            ]);
+        $cellMerge = "{$lastPlanCol}{$row}:{$fgCol}{$row}";
 
         $operator = ($text === 'With Delivery Issue') ? '<0' : '>0';
 
-        for ($colIndexBal = $fgIndex + 1; $colIndexBal <= count($headers); $colIndexBal++) {
-            $balanceCol = Coordinate::stringFromColumnIndex($colIndexBal);
-            $formulaRange = "{$balanceCol}4:{$balanceCol}{$highestRow}";
+        for ($currBalIndex = $fgIndex + 1; $currBalIndex <= count($headers); $currBalIndex++) {
+            $currBalanceCol = Coordinate::stringFromColumnIndex($currBalIndex);
+            $formulaRange = "{$currBalanceCol}{$rowDataIndex}:{$currBalanceCol}{$highestRow}";
 
-            $balCoordinate = "{$balanceCol}{$row}";
-            $sheet->setCellValue(
-                $balCoordinate,
-                "=COUNTIF({$formulaRange},\"{$operator}\")"
-            );
+            $balCoordinate = "{$currBalanceCol}{$row}";
+
+            $formula = "=SUMPRODUCT(SUBTOTAL(103,OFFSET({$currBalanceCol}{$rowDataIndex},ROW({$currBalanceCol}{$rowDataIndex}:{$currBalanceCol}{$highestRow})-ROW({$currBalanceCol}{$rowDataIndex}),0)),--({$currBalanceCol}{$rowDataIndex}:{$currBalanceCol}{$highestRow}{$operator}))";
+
+            $sheet->setCellValue($balCoordinate, $formula);
 
             $color = ($row === 1) ? Color::COLOR_RED : Color::COLOR_BLACK;
-
             $sheet->getStyle($balCoordinate)->getFont()
                 ->setBold(true)
                 ->getColor()->setARGB($color);
         }
     }
 
-    foreach (range('A', 'E') as $col) {
-        $sheet->getStyle($col . '4:' . $col . $sheet->getHighestRow())
+    foreach (range('A', 'F') as $col) {
+        $sheet->getStyle($col . '4:' . $col . $highestRow)
             ->getAlignment()
-            ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            ->setHorizontal($col != 'F' ? Alignment::HORIZONTAL_LEFT : Alignment::HORIZONTAL_RIGHT)
+            ->setVertical(Alignment::VERTICAL_CENTER);
 
-        $sheet->getColumnDimension($col)->setAutoSize(true);
+        if ($col == 'C') {
+            $sheet->getColumnDimension($col)->setWidth(75);
+        } else {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
     }
 
-    $sheet->setAutoFilter("A3:{$lastCol}3");
-    $sheet->freezePane('D4');
+    foreach ([[$firstPlanIndex, $lastPlanIndex], [$firstBalIndex, $lastBalIndex]] as [$start, $end]) {
+        for ($i = $start + 5; $i <= $end; $i++) {
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($i))
+                ->setOutlineLevel(1)
+                ->setVisible(false);
+        }
+    }
+
+    $sheet->setAutoFilter("A4:{$lastCol}4");
+    $sheet->freezePane("D{$rowDataIndex}");
+    $sheet->setSelectedCell("A3");
 
     $excelData = generateExcelReport($spreadsheet);
 
