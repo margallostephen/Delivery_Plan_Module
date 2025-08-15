@@ -26,7 +26,7 @@ background-image: linear-gradient(315deg, #191714 -120%,  #2234ae 120%);">
             <ul class="nav nav-list">
                 <li id="li_1">
                     <a href="/<?php $path_folder = "1_FGM";
-                    echo $path_folder; ?>/">
+                                echo $path_folder; ?>/">
                         <i class="menu-icon fa fa-home"></i>
                         <span class="menu-text"> MAIN </span>
                     </a>
@@ -250,9 +250,11 @@ background-image: linear-gradient(315deg, #191714 -120%,  #2234ae 120%);">
 <script type="text/javascript" src="ajax/importExcel.js<?php echo randomNum(); ?>"></script>
 
 <script type="text/javascript">
-    const staticCols = [
-        {
-            title: "CUSTOMER", field: "b", hozAlign: "left", vertAlign: "middle",
+    const staticCols = [{
+            title: "CUSTOMER",
+            field: "b",
+            hozAlign: "left",
+            vertAlign: "middle",
             headerFilter: "list",
             headerFilterPlaceholder: "Select",
             headerFilterParams: {
@@ -260,11 +262,35 @@ background-image: linear-gradient(315deg, #191714 -120%,  #2234ae 120%);">
             },
             frozen: true
         },
-        { title: "PART NUMBER", field: "c", hozAlign: "left", vertAlign: "middle", headerFilter: "input", frozen: true },
-        { title: "ITEM NAME", field: "d", hozAlign: "left", vertAlign: "middle", headerFilter: "input", frozen: true },
-        { title: "REFERENCE", field: "e", hozAlign: "left", vertAlign: "middle", headerFilter: "input", formatter: "textarea" },
         {
-            title: "LOCATION", field: "f", hozAlign: "left", vertAlign: "middle",
+            title: "PART NUMBER",
+            field: "c",
+            hozAlign: "left",
+            vertAlign: "middle",
+            headerFilter: "input",
+            frozen: true
+        },
+        {
+            title: "ITEM NAME",
+            field: "d",
+            hozAlign: "left",
+            vertAlign: "middle",
+            headerFilter: "input",
+            frozen: true
+        },
+        {
+            title: "REFERENCE",
+            field: "e",
+            hozAlign: "left",
+            vertAlign: "middle",
+            headerFilter: "input",
+            formatter: "textarea"
+        },
+        {
+            title: "LOCATION",
+            field: "f",
+            hozAlign: "left",
+            vertAlign: "middle",
             headerFilter: "list",
             headerFilterPlaceholder: "Select",
             headerFilterParams: {
@@ -277,7 +303,7 @@ background-image: linear-gradient(315deg, #191714 -120%,  #2234ae 120%);">
             hozAlign: "right",
             vertAlign: "middle",
             headerFilter: "input",
-            formatter: function (cell, formatterParams, onRendered) {
+            formatter: function(cell, formatterParams, onRendered) {
                 const value = cell.getValue();
                 const el = cell.getElement();
 
@@ -300,27 +326,27 @@ background-image: linear-gradient(315deg, #191714 -120%,  #2234ae 120%);">
     let importDatetime;
     let deliveryTable = createTable('deliveryTable', staticCols);
 
-    const datepicker = createDatePicker("datePicker", function ($picker) {
+    const datepicker = createDatePicker("datePicker", function($picker) {
         populateTable(deliveryTable, $picker, staticCols);
     });
 
-    $(document).ready(function () {
+    $(document).ready(function() {
         populateTable(deliveryTable, datepicker, staticCols);
 
         addResetFilter(deliveryTable);
 
-        $("#importExcelBtn").click(function () {
+        $("#importExcelBtn").click(function() {
             $("#modalImport").modal("show");
         });
 
-        $(".closeModalBtn").click(function () {
+        $(".closeModalBtn").click(function() {
             const $modal = $(`#modalImport`);
 
             $modal.modal("hide");
             $(`#importExcelForm`)[0].reset();
         });
 
-        $('#exportExcelBtn').on('click', function () {
+        $('#exportExcelBtn').on('click', function() {
             if (deliveryTable.getData().length == 0) {
                 return toastr.warning("No available data to export", "Warning", {
                     closeButton: true,
