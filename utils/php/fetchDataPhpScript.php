@@ -3,9 +3,9 @@ function fetchDataFromDataPhp(string $url, bool $returnDecoded = true)
 {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
-    $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+    $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/';
 
-    $url = $protocol . '://' . $host . $basePath . $url;
+    $url = $protocol . '://' . $host . $basePath . $url . '.php';
 
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
