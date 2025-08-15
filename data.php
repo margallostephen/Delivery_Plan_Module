@@ -56,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result = $stmt->get_result();
 
     $deliveryData = [];
+    $lastPlanDate = null;
 
     while ($row = $result->fetch_assoc()) {
         $customer = $row['CUSTOMER'];
@@ -82,74 +83,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $planQty = ($planQtyRaw === null || $planQtyRaw === "" ? 0 : (int) $planQtyRaw);
-        $deliveryData[$compositeKey]['_plan_dates'][$planDate] = $planQty;
+        if ($planDate != '0000-00-00') {
+            $deliveryData[$compositeKey]['_plan_dates'][$planDate] = $planQty;
+        }
+        $lastPlanDate = $planDate;
     }
 
-    foreach ($deliveryData as &$item) {
-        ksort($item['_plan_dates']);
+    if (!empty($deliveryData)) {
 
-        $fg = $item['_start_fg'];
-        $backlog = $item['_start_backlog'];
+        foreach ($deliveryData as &$item) {
+            ksort($item['_plan_dates']);
 
-        $balances = [];
-        $firstLoop = true;
-        $previousCalc = 0;
+            $fg = $item['_start_fg'];
+            $backlog = $item['_start_backlog'];
 
-        foreach ($item['_plan_dates'] as $date => $planQty) {
-            $planQty = max(0, $planQty);
+            $balances = [];
+            $firstLoop = true;
+            $previousCalc = 0;
 
-            if ($firstLoop) {
-                $calc = $fg - ($backlog + $planQty);
-                $firstLoop = false;
-            } else {
-                $calc = $previousCalc - $planQty;
+            foreach ($item['_plan_dates'] as $date => $planQty) {
+                $planQty = max(0, $planQty);
+
+                if ($firstLoop) {
+                    $calc = $fg - ($backlog + $planQty);
+                    $firstLoop = false;
+                } else {
+                    $calc = $previousCalc - $planQty;
+                }
+
+                if ($calc > 0) {
+                    $fg = $calc;
+                    $backlog = 0;
+                    $balances[$date] = $fg;
+                } else {
+                    $backlog = abs($calc);
+                    $fg = 0;
+                    $balances[$date] = -$backlog;
+                }
+
+                $previousCalc = $calc;
             }
 
-            if ($calc > 0) {
-                $fg = $calc;
-                $backlog = 0;
-                $balances[$date] = $fg;
-            } else {
-                $backlog = abs($calc);
-                $fg = 0;
-                $balances[$date] = -$backlog;
+            $item['_balance_dates'] = $balances;
+        }
+        unset($item);
+
+        foreach ($deliveryData as &$item) {
+            $letterIndex = 0;
+            foreach ($item['_plan_dates'] as $date => $planQty) {
+                $col = numToAlpha($letterIndex + 7);
+                $item[$col] = ($planQty === 0) ? "-" : $planQty;
+                $letterIndex++;
             }
 
-            $previousCalc = $calc;
-        }
-
-        $item['_balance_dates'] = $balances;
-    }
-    unset($item);
-
-    foreach ($deliveryData as &$item) {
-        $letterIndex = 0;
-        foreach ($item['_plan_dates'] as $date => $planQty) {
-            $col = numToAlpha($letterIndex + 7);
-            $item[$col] = ($planQty === 0) ? "-" : $planQty;
+            $fgCol = numToAlpha($letterIndex + 7);
+            $item[$fgCol] = ($item['_start_fg'] === 0) ? "-" : $item['_start_fg'];
             $letterIndex++;
+
+            foreach ($item['_balance_dates'] as $date => $balance) {
+                $col = numToAlpha($letterIndex + 7);
+                $item[$col] = ($balance === 0) ? "-" : $balance;
+                $letterIndex++;
+            }
+
+            unset($item['_plan_dates'], $item['_balance_dates'], $item['_start_fg'], $item['_start_backlog']);
         }
+        unset($item);
 
-        $fgCol = numToAlpha($letterIndex + 7);
-        $item[$fgCol] = ($item['_start_fg'] === 0) ? "-" : $item['_start_fg'];
-        $letterIndex++;
-
-        foreach ($item['_balance_dates'] as $date => $balance) {
-            $col = numToAlpha($letterIndex + 7);
-            $item[$col] = ($balance === 0) ? "-" : $balance;
-            $letterIndex++;
-        }
-
-        unset($item['_plan_dates'], $item['_balance_dates'], $item['_start_fg'], $item['_start_backlog']);
+        $deliveryData = array_values($deliveryData);
     }
-    unset($item);
 
-    $deliveryData = array_values($deliveryData);
     $formattedTimestamp = $latestImportDatetime ? date("Y-m-d h:i:s A", strtotime($latestImportDatetime)) : null;
 
     echo json_encode([
         'success' => true,
-        'selectedDate' => $selectedDate,
+        'firstColDate' => $selectedDate,
+        'lastColDate' => $lastPlanDate,
         'latestImportDatetime' => $formattedTimestamp,
         'delivery_plan' => $deliveryData,
     ], JSON_THROW_ON_ERROR);

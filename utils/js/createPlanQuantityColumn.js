@@ -1,21 +1,27 @@
-function pushQuantityColumn(startDateStr, startIndex, balanceCol = false) {
-    const [year, month, day] = startDateStr.split('-').map(Number);
+function pushQuantityColumn(startDateStr, endDateStr, startIndex, balanceCol = false) {
+    if (!startDateStr || !endDateStr) return { cols: [], nextIndex: startIndex };
 
-    const dt = new Date(year, month - 1, day);
+    const [startYear, startMonth, startDay] = startDateStr.split('-').map(Number);
+    const [endYear, endMonth, endDay] = endDateStr.split('-').map(Number);
+
+    const dt = new Date(startYear, startMonth - 1, startDay);
     dt.setHours(0, 0, 0, 0);
 
-    const end = new Date(year, month, 0);
+    const end = new Date(endYear, endMonth - 1, endDay);
     end.setHours(0, 0, 0, 0);
 
     const cols = [];
     let i = startIndex;
 
     while (dt <= end) {
-        const formattedDate = new Intl.DateTimeFormat('en-CA').format(dt);
+        const formattedDate = new Intl.DateTimeFormat('en-CA', {
+            month: '2-digit',
+            day: '2-digit'
+        }).format(dt);
         const dayName = dt.toLocaleDateString(undefined, { weekday: 'short' });
 
         cols.push({
-            title: `${dayName}<hr>${formattedDate}`,
+            title: `${formattedDate}<hr>${dayName}`,
             field: numToAlpha(i++),
             hozAlign: "right",
             vertAlign: "middle",
@@ -25,13 +31,17 @@ function pushQuantityColumn(startDateStr, startIndex, balanceCol = false) {
             formatter: (cell) => {
                 const val = cell.getValue();
                 const el = cell.getElement();
-                el.style.backgroundColor = val < 0 && balanceCol ? "#ffcccc" : "";
-                el.style.color = val < 0 && balanceCol ? "red" : "";
-                el.style.fontWeight = val < 0 && balanceCol ? "bold" : "";
+                const isNegative = typeof val === 'number' && val < 0 && balanceCol;
 
-                return (typeof val === 'number' && val < 0 && balanceCol)
+                el.style.backgroundColor = isNegative ? "#ffcccc" : "";
+                el.style.color = isNegative ? "red" : "";
+                el.style.fontWeight = isNegative ? "bold" : "";
+
+                return isNegative
                     ? `(${new Intl.NumberFormat('en-US').format(-val)})`
-                    : (typeof val === 'number' ? new Intl.NumberFormat('en-US').format(val) : val);
+                    : (typeof val === 'number'
+                        ? new Intl.NumberFormat('en-US').format(val)
+                        : val);
             }
         });
 

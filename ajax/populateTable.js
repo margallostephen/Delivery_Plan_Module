@@ -21,9 +21,10 @@ function populateTable(deliveryTable, datepicker, staticCols) {
             let i = 7;
             let tabulatorCols = [];
 
-            const colDateRef = response.selectedDate;
+            const startColDate = response.firstColDate;
+            const lastColDate = response.lastColDate;
 
-            const planDateCols = pushQuantityColumn(colDateRef, i);
+            const planDateCols = pushQuantityColumn(startColDate, lastColDate, i);
             tabulatorCols = tabulatorCols.concat(planDateCols.cols);
             i = planDateCols.nextIndex;
 
@@ -33,7 +34,6 @@ function populateTable(deliveryTable, datepicker, staticCols) {
                 hozAlign: "right",
                 headerFilter: "input",
                 vertAlign: "middle",
-                width: "10px",
                 headerHozAlign: "center",
                 formatter: "money",
                 formatterParams: {
@@ -43,7 +43,7 @@ function populateTable(deliveryTable, datepicker, staticCols) {
                 }
             });
 
-            const balDateCols = pushQuantityColumn(colDateRef, i, true);
+            const balDateCols = pushQuantityColumn(startColDate, lastColDate, i, true);
             tabulatorCols = tabulatorCols.concat(balDateCols.cols);
             const allCols = staticCols.concat(tabulatorCols);
 
