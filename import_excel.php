@@ -1,5 +1,6 @@
 <?php
 require 'vendor/autoload.php';
+
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 header('Content-Type: application/json');
@@ -33,23 +34,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
         $import_date = date('Y-m-d H:i:s');
 
         $rows = $sheet->toArray();
-        $dateHeaders = $rows[3]; // row 2, index 1 — contains delivery plan dates
-        $dataRows = array_slice($rows, 4); // start from row 5 onward
 
-        // Define static column indexes
-        $table = 'delivery_plan_tb';
-        $colMap = [
-            'CUSTOMER' => 0,
-            'PART_NUMBER' => 1,
-            'ITEM_NAME' => 2,
-            'REFERENCE' => 3,
-            'LOCATION' => 4,
-            'BACKLOG' => 5,
-        ];
+        $dateHeaders = $rows[2];
+        $dataRows = array_slice($rows, 4);
 
-        // Prepare insert once
-        $insertSql = "INSERT INTO $table (CUSTOMER, PART_NUMBER, ITEM_NAME, REFERENCE, LOCATION, BACKLOG, PLAN_DATE, PLAN_QTY, FG, IMPORT_DATE_TIME)
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $dataRows = array_filter($dataRows, function ($row) {
+            foreach ($row as $cell) {
+                if (trim((string)$cell) !== '') {
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        $insertSql = "INSERT INTO delivery_plan_tb 
+            (CUSTOMER, PART_NUMBER, ITEM_NAME, REFERENCE, LOCATION, BACKLOG, PLAN_DATE, PLAN_QTY, FG, IMPORT_DATE_TIME)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($insertSql);
         if (!$stmt) {
             echo json_encode(['success' => false, 'message' => 'Prepare failed: ' . $conn->error]);
@@ -58,31 +58,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
 
         foreach ($dataRows as $row) {
             if (empty($row[1]) || empty($row[2]))
-                continue; // skip if part number or item name missing
+                continue;
 
-            // Static fields
-            $customer = strtoupper(trim($row[$colMap['CUSTOMER']]));
-            $partNo = strtoupper(trim($row[$colMap['PART_NUMBER']]));
-            $itemName = strtoupper(trim($row[$colMap['ITEM_NAME']]));
-            $reference = preg_replace('/\s+/', "\n", trim($row[$colMap['REFERENCE']]));
-            $location = strtoupper(trim($row[$colMap['LOCATION']]));
-            $backlog = (int) str_replace(['(', ')', ',', ' '], '', trim($row[$colMap['BACKLOG']]));
-            $fg = (int) str_replace(['(', ')', ',', ' '], '', trim($row[37])); // AL column is index 37
+            $customer = strtoupper(trim($row[0]));
+            $partNo = strtoupper(trim($row[1]));
+            $itemName = strtoupper(trim($row[2]));
+            $reference = preg_replace('/\s+/', "\n", trim($row[3]));
+            $location = strtoupper(trim($row[4]));
+            $backlog = (int) str_replace(['(', ')', ',', ' '], '', trim($row[5]));
+            $fg = (int) str_replace(['(', ')', ',', ' '], '', trim($row[37]));
 
-            // Loop through plan dates from G (index 6) to AL (index 36)
-
-            $dayPlusFive = (int) date('j') + 5;
-
-            for ($col = $dayPlusFive; $col <= 36; $col++) {
+            for ($col = 6; $col <= 36; $col++) {
                 $planDate = trim($dateHeaders[$col]);
-                if (!$planDate || !strtotime($planDate))
-                    continue;
 
-                $rawQty = trim($row[$col]); // e.g., " (1,000) "
+                $rawQty = trim($row[$col]);
                 $cleanQty = str_replace(['(', ')', ',', ' '], '', $rawQty);
                 $qty = (int) $cleanQty;
-                // if ($qty === 0)
-                //     continue; // skip if no planned qty
 
                 $stmt->bind_param(
                     'sssssssiis',
