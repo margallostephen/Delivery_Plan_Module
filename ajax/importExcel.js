@@ -43,6 +43,7 @@ $("#importExcelForm").submit(function (e) {
                 populateTable(deliveryTable, datepicker, staticCols);
             } else {
                 toastr.error(response.message, "Error");
+                console.error(response);
             }
         },
         error: (error) => {
