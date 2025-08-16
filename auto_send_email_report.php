@@ -49,15 +49,21 @@ try {
         $mail->addAddress(trim($email), trim($name));
     }
 
-    $mail->Subject = 'Delivery Plan Report ' . '(' . date('Y-m-d') . ')';
+    $mail->Subject = 'Delivery Plan Report';
     $mail->isHTML(true);
     $mail->Body = '
-        <b>This is an E-Mail sent via PTPI - SYSTEM auto-generated mail. Please do not reply.</b><br><br>
-        Dear Mr./Ms.,<br>
-        Please see attached file for Delivery Plan ' . date('Y-m-d') . '.<br><br>
-        <b>--</b><br><br>
-        Best Regards,<br><br>
-        <b>PRIMA TECH PHILS., INC.</b><br>
+        <b>This is an E-Mail sent via PTPI - SYSTEM auto-generated mail. Please do not reply.</b>
+        <br><br>
+        Dear Mr./Ms.,
+        <br>
+        Please see attached file for Delivery Plan.
+        <br><br>
+        <b>--</b>
+        <br><br>
+        Best Regards,
+        <br><br>
+        <b>PRIMA TECH PHILS., INC.</b>
+        <br>
         <b>FG Management System (FGMS)</b>
     ';
 
