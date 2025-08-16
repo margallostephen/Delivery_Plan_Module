@@ -22,53 +22,7 @@ background-image: linear-gradient(315deg, #191714 -120%,  #2234ae 120%);">
 
 <body class="no-skin">
     <div class="main-container ace-save-state" id="main-container">
-        <div id="sidebar" class="sidebar responsive ace-save-state">
-            <ul class="nav nav-list">
-                <li id="li_1">
-                    <a href="/<?php $path_folder = "1_FGM";
-                                echo $path_folder; ?>/">
-                        <i class="menu-icon fa fa-home"></i>
-                        <span class="menu-text"> MAIN </span>
-                    </a>
-                    <b class="arrow"></b>
-                </li>
-
-                <li id="li_4">
-                    <a href="/<?php echo $path_folder; ?>/FMS03/">
-                        <i class="menu-icon fa fa-tachometer"></i>
-                        <span class="menu-text"> DASHBOARD </span>
-                    </a>
-                    <b class="arrow"></b>
-                </li>
-
-                <li id="li_2">
-                    <a href="/<?php echo $path_folder; ?>/FMS01/">
-                        <i class="menu-icon fa fa-th"></i>
-                        <span class="menu-text"> RECORD </span>
-                    </a>
-                    <b class="arrow"></b>
-                </li>
-
-                <li id="li_3">
-                    <a href="/<?php echo $path_folder; ?>/FMS02/">
-                        <i class="menu-icon fa fa-usd"></i>
-                        <span class="menu-text"> PRICE INFO </span>
-                    </a>
-                    <b class="arrow"></b>
-                </li>
-                <li class="sidebar-btn" id="dashboard">
-                    <a href="<?php echo 'http://172.16.1.13:8000/1_DPS' ?>">
-                        <i class="menu-icon fa fa-table"></i>
-                        <span class="menu-text">DELIVERY PLAN</span>
-                    </a>
-                </li>
-            </ul>
-
-            <div class="sidebar-toggle sidebar-collapse" id="sidebar-collapse">
-                <i id="sidebar-toggle-icon" class="ace-icon fa fa-angle-double-left ace-save-state"
-                    data-icon1="ace-icon fa fa-angle-double-left" data-icon2="ace-icon fa fa-angle-double-right"></i>
-            </div>
-        </div>
+        <?php require_once 'partials/sidebar.php'; ?>
 
         <div class="main-content">
             <div class="main-content-inner">
