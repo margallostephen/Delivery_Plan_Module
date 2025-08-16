@@ -49,13 +49,13 @@ try {
         $mail->addAddress(trim($email), trim($name));
     }
 
-    $mail->Subject = 'Delivery Plan Report';
+    $mail->Subject = 'FMS Delivery Plan System Generated';
     $mail->isHTML(true);
     $mail->Body = '
         <b>This is an E-Mail sent via PTPI - SYSTEM auto-generated mail. Please do not reply.</b>
         <br><br>
-        Dear Mr./Ms.,
-        <br>
+        Dear Sir/Ma\'am,
+        <br><br>
         Please see attached file for Delivery Plan.
         <br><br>
         <b>--</b>
