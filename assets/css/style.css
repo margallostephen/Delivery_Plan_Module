@@ -144,6 +144,18 @@ body {
 .tabulator .tabulator-tableholder .tabulator-placeholder .tabulator-placeholder-contents {
     color: #393939;
     font-size: 15px;
+    padding: 4px 10px;
+}
+
+.tabulator .tabulator-footer .tabulator-paginator {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 5px;
+}
+
+.tabulator .tabulator-footer .tabulator-paginator label {
+    margin: 0;
 }
 
 #noDataMessage {
@@ -178,6 +190,10 @@ body {
 .swal2-popup {
     font-size: 1.3rem !important;
     font-family: Tahoma, sans-serif !important;
+}
+
+#downloadFormatBtn {
+    width: 100%;
 }
 
 @keyframes spin {
