@@ -1,26 +1,8 @@
 <?php require_once 'partials/header.php'; ?>
 
-<div id="navbar" class="navbar navbar-default ace-save-state" style="background-color: #2234ae;
-background-image: linear-gradient(315deg, #191714 -120%,  #2234ae 120%);">
-    <div class="navbar-container ace-save-state" id="navbar-container">
-        <button type="button" class="navbar-toggle menu-toggler pull-left" id="menu-toggler" data-target="#sidebar"
-            style="background-color: darkblue; border: 0.5px solid black;">
-            <span class="sr-only">Toggle sidebar</span>
-        </button>
-        <div class="navbar-header pull-left">
-            <asd class="navbar-brand">
-                <small>
-                    <h1 id="litheader"
-                        style="font-size: 20px; font-weight: bolder; margin: 0;padding: 0;  display: inline-block; font-family: Tahoma;">
-                        <span class="white" id="id-text2">PRIMA TECH PHILS., INC. </span>
-                    </h1>
-                </small>
-            </asd>
-        </div>
-    </div>
-</div>
-
 <body class="no-skin">
+    <?php require_once 'partials/navbar.php'; ?>
+
     <div class="main-container ace-save-state" id="main-container">
         <?php require_once 'partials/sidebar.php'; ?>
 
@@ -92,39 +74,31 @@ background-image: linear-gradient(315deg, #191714 -120%,  #2234ae 120%);">
                                                 <input type="text" id="datePicker" autocomplete="off"
                                                     placeholder="Select a Delivery Plan Date">
                                                 <div class="table-btn-container">
-                                                    <button type="button" class="btn btn-sm btn-inverse"
-                                                        id="downloadFormatBtn">
-                                                        <span>
-                                                            <i id="btn-dl-icon" class="ace-icon fa fa-table"></i>
-                                                        </span>
-                                                        <span id="btn-text">
-                                                            Generate Import Format
-                                                        </span>
-                                                    </button>
                                                     <button type="button" class="btn btn-sm btn-primary"
                                                         id="importExcelBtn">
-                                                        <span>
-                                                            <i class="ace-icon fa fa-upload"></i>
-                                                        </span>
+                                                        <i class="ace-icon fa fa-upload"></i>
                                                         <span>
                                                             Import Data
                                                         </span>
                                                     </button>
                                                     <button type="button" class="btn btn-sm btn-success"
                                                         id="exportExcelBtn" disabled>
-                                                        <span>
-                                                            <i id="btn-dl-icon-export"
-                                                                class="ace-icon fa fa-download"></i>
-                                                        </span>
+                                                        <i id="btn-dl-icon-export"
+                                                            class="ace-icon fa fa-download"></i>
                                                         <span id="btn-text-export">
                                                             Export Data
                                                         </span>
                                                     </button>
+                                                    <button class="btn btn-sm btn-secondary" id="refreshTableBtn"
+                                                        disabled>
+                                                        <i class="fa-solid fa-arrows-rotate"></i>
+                                                        <span id="btn-refresh-text">
+                                                            Refresh Table
+                                                        </span>
+                                                    </button>
                                                     <button class="btn btn-sm btn-warning" id="clearAllFilterBtn"
                                                         disabled>
-                                                        <span>
-                                                            <i class="fa-solid fa-arrow-rotate-right"></i>
-                                                        </span>
+                                                        <i class="fa-solid fa-arrow-rotate-right"></i>
                                                         <span id="btn-clear-text">
                                                             Reset Filter
                                                         </span>
@@ -164,37 +138,13 @@ background-image: linear-gradient(315deg, #191714 -120%,  #2234ae 120%);">
         </footer>
     </div>
 
-    <div id="modalImport" class="modal fade">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Import Data to Table</h4>
-                </div>
-                <form id="importExcelForm">
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <input type="file" class="form-control" id="excelFileImport" accept=".xlsx,.xls" />
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-sm btn-primary" id="submitImportExcelBtn">
-                            <span id="execute_spinner" hidden>
-                                <i class="ace-icon fa fa-spinner fa-spin white"></i>
-                            </span>
-                            <span id="execute_btn_text"> Submit</span>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-default closeModalBtn"
-                            data-dismiss="modal">Close</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    <?php require_once 'modals/importModal.php'; ?>
 </body>
 
 <script type="text/javascript" src="helpers/js/addResetFilter.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="helpers/js/createDatePicker.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="helpers/js/createTable.js<?php echo randomNum(); ?>"></script>
+<script type="text/javascript" src="helpers/js/autoPaginateTable.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="utils/js/letterKeyConverter.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="utils/js/createPlanQuantityColumn.js<?php echo randomNum(); ?>"></script>
 
@@ -278,6 +228,9 @@ background-image: linear-gradient(315deg, #191714 -120%,  #2234ae 120%);">
 
     let tableData;
     let importDatetime;
+    let autoPaginateId;
+    let planDateCols;
+    let balDateCols;
     let deliveryTable = createTable('deliveryTable', staticCols);
 
     const datepicker = createDatePicker("datePicker", function($picker) {
@@ -331,9 +284,38 @@ background-image: linear-gradient(315deg, #191714 -120%,  #2234ae 120%);">
                         tableData = deliveryTable.getData();
                     }
 
-                    exportExcel(tableData, importDatetime)
+                    exportExcel(tableData, importDatetime);
                 }
             });
         });
+
+        $("#refreshTableBtn").on("click", function() {
+            const $btn = $(this);
+            $("#refreshTableBtn i").addClass("fa-spin");
+            $btn.find("span").text("Refreshing...");
+            populateTable(deliveryTable, datepicker, staticCols);
+        });
+
+        $(document).on('click', '#toggleExtraDates', function() {
+            const $btn = $(this);
+            const $icon = $btn.find('i');
+            const $text = $btn.find('span').last();
+
+            [...planDateCols.cols.slice(5), ...balDateCols.cols.slice(5)]
+            .forEach(col => deliveryTable.getColumn(col.field).toggle());
+
+            const isOneMonth = $btn.hasClass('btn-inverse');
+
+            if (isOneMonth) {
+                $icon.removeClass('fa-calendar-days').addClass('fa-calendar-week');
+                $btn.removeClass('btn-inverse').addClass('btn-danger');
+                $text.text('Show 5 Days');
+            } else {
+                $icon.removeClass('fa-calendar-week').addClass('fa-calendar-days');
+                $btn.removeClass('btn-danger').addClass('btn-inverse');
+                $text.text('Show 1 Month');
+            }
+        });
+
     });
 </script>

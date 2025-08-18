@@ -4,9 +4,9 @@ function createTable(id, planColumns) {
         layout: "fitDataFill",
         autoResize: true,
         pagination: "local",
-        paginationSize: 50,
+        paginationSize: 15,
         paginationCounter: "rows",
-        paginationSizeSelector: [100, 250, 500, 1000, true],
+        paginationSizeSelector: [15, 100, 250, 500, 1000, true],
         columns: planColumns
     });
 }
