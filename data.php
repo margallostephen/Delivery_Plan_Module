@@ -37,17 +37,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $sql = "
-        SELECT t1.* 
-        FROM delivery_plan_tb t1 
-        INNER JOIN ( 
-            SELECT PART_NUMBER, PLAN_DATE, MAX(IMPORT_TIME) AS max_import_time 
-            FROM delivery_plan_tb
-            WHERE IMPORT_DATE = ?
-            GROUP BY PART_NUMBER, PLAN_DATE 
-        ) t2 ON t1.PART_NUMBER = t2.PART_NUMBER 
-            AND t1.PLAN_DATE = t2.PLAN_DATE 
-            AND t1.IMPORT_TIME = t2.max_import_time 
-        ORDER BY t1.PART_NUMBER DESC;
+        WITH ranked_rows AS (
+            SELECT
+                dp.*,
+                ROW_NUMBER() OVER (
+                    PARTITION BY dp.PART_NUMBER, dp.PLAN_DATE
+                    ORDER BY dp.IMPORT_TIME DESC
+                ) AS rn
+            FROM delivery_plan_tb dp
+            WHERE dp.IMPORT_DATE = ?
+        )
+        SELECT
+            r.RID,
+            r.CUSTOMER,
+            r.PART_NUMBER,
+            r.ITEM_NAME,
+            r.REFERENCE,
+            r.LOCATION,
+            r.BACKLOG,
+            r.PLAN_DATE,
+            r.PLAN_QTY,
+            COALESCE(fs.TOTAL_QTY, r.FG) AS FG,
+            r.IMPORT_DATE_TIME,
+            r.IMPORT_DATE,
+            r.IMPORT_TIME
+        FROM ranked_rows r
+        LEFT JOIN fg_stock_tb fs
+            ON fs.ITEM_CODE = r.PART_NUMBER
+            AND fs.PROD_DATE = r.IMPORT_DATE
+        WHERE r.rn = 1
+        ORDER BY r.PART_NUMBER, r.PLAN_DATE;
     ";
 
     $stmt = $conn->prepare($sql);
