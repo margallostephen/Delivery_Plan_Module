@@ -14,6 +14,9 @@ function populateTable(deliveryTable, datepicker, staticCols) {
             const tableData = response.delivery_plan;
             importDatetime = response.latestImportDatetime;
 
+            localStorage.setItem("delivery_plan", JSON.stringify(tableData));
+            localStorage.setItem("delivery_plan_negative", JSON.stringify(response.delivery_plan_negative));
+
             $("#importLabel").text(
                 `DELIVERY PLAN LIST${importDatetime ? ' as of (' + importDatetime + ')' : ''}`
             );
@@ -63,27 +66,44 @@ function populateTable(deliveryTable, datepicker, staticCols) {
                         .find('.tabulator-paginator')
                         .append(`
                             <button id="toggleAutoPaginate" class="btn btn-sm btn-primary">
-                            <i class="fa-solid fa-play"></i>
-                            <span id="autoPaginateText">Auto Paginate</span>
+                                <i class="fa-solid fa-play"></i>
+                                <span>Auto Paginate</span>
                             </button>
                         `);
 
                 const $paginator = $(deliveryTable.element).find('.tabulator-paginator');
-                let $btn = $paginator.find('#toggleExtraDates');
+                const $toggleExtraDatesBtn = $paginator.find('#toggleExtraDates');
+                const $toggleRowsBtn = $paginator.find("#toggleRowsBtn")
 
-                if ($btn.length) {
-                    const $icon = $btn.find('i');
-                    const $text = $btn.find('span');
+                if ($toggleExtraDatesBtn.length) {
+                    const $icon = $toggleExtraDatesBtn.find('i');
+                    const $text = $toggleExtraDatesBtn.find('span');
 
                     $icon.removeClass('fa-calendar-days').addClass('fa-calendar-week');
-                    $btn.removeClass('btn-inverse').addClass('btn-danger');
-                    $text.text('Show 5 Days');
+                    $toggleExtraDatesBtn.removeClass('btn-inverse').addClass('btn-danger');
+                    $text.text('Show 5 Days Range');
                 } else {
                     $paginator.append(`
-                        <button type="button" class="btn btn-sm btn-danger" id="toggleExtraDates" disabled>
+                        <button type="button" class="btn btn-sm btn-danger" id="toggleExtraDates">
                             <i class="ace-icon fa fa-calendar-week"></i>
-                            <span>Show 5 Days</span>
+                            <span>Show 5 Days Range</span>
                         </button>
+                    `);
+                }
+
+                if ($toggleRowsBtn.length) {
+                    const $icon = $toggleRowsBtn.find('i');
+                    const $text = $toggleRowsBtn.find('span');
+
+                    $icon.removeClass('fa-list').addClass('fa-magnifying-glass-minus');
+                    $toggleRowsBtn.removeClass('btn-light').addClass('btn-danger');
+                    $text.text('Show Rows with Negative Balance');
+                } else {
+                    $paginator.append(`
+                            <button type="button" class="btn btn-sm btn-danger" id="toggleRowsBtn">
+                                <i class="fa-solid fa-magnifying-glass-minus"></i>
+                                <span>Show Row with Negative Balance</span>
+                            </button>
                     `);
                 }
             } else {

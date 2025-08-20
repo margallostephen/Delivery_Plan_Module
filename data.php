@@ -147,6 +147,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         unset($item);
 
+        $deliveryDataNegativeBalance = [];
+        $hasNegativeBalance = false;
         foreach ($deliveryData as &$item) {
             $letterIndex = 0;
             foreach ($item['_plan_dates'] as $date => $planQty) {
@@ -159,13 +161,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $item[$fgCol] = ($item['_start_fg'] === 0) ? "-" : $item['_start_fg'];
             $letterIndex++;
 
+            $negativeCount = 0;
+            $counter = 0;
+
             foreach ($item['_balance_dates'] as $date => $balance) {
                 $col = numToAlpha($letterIndex + 7);
                 $item[$col] = ($balance === 0) ? "-" : $balance;
+                if ($counter <= 5 && $balance < 0) {
+                    $negativeCount++;
+                }
                 $letterIndex++;
+                $counter++;
             }
 
             unset($item['_plan_dates'], $item['_balance_dates'], $item['_start_fg'], $item['_start_backlog']);
+
+            if ($negativeCount >= 5) {
+                $deliveryDataNegativeBalance[] = $item;
+            }
+
+            $hasNegativeBalance = false;
         }
         unset($item);
 
@@ -180,6 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'lastColDate' => $lastPlanDate,
         'latestImportDatetime' => $formattedTimestamp,
         'delivery_plan' => $deliveryData,
+        'delivery_plan_negative' => $deliveryDataNegativeBalance,
     ], JSON_THROW_ON_ERROR);
 
     $conn->close();

@@ -83,8 +83,7 @@
                                                     </button>
                                                     <button type="button" class="btn btn-sm btn-success"
                                                         id="exportExcelBtn" disabled>
-                                                        <i id="btn-dl-icon-export"
-                                                            class="ace-icon fa fa-download"></i>
+                                                        <i class="fa-solid fa fa-file-export" id="btn-dl-icon-export"></i>
                                                         <span id="btn-text-export">
                                                             Export Data
                                                         </span>
@@ -124,18 +123,7 @@
                 </div>
             </div>
         </div>
-        <footer class="footer">
-            <div class="footer-inner">
-                <div class="footer-content">
-                    <span class="bigger-120 blue bolder">
-                        <?php echo "FG MANAGEMENT SYSTEM "; ?>
-                    </span>
-                    <span class="bigger-120">
-                        © March 2023
-                    </span>
-                </div>
-            </div>
-        </footer>
+        <?php require_once 'partials/footer.php'; ?>
     </div>
 
     <?php require_once 'modals/importModal.php'; ?>
@@ -231,6 +219,7 @@
     let autoPaginateId;
     let planDateCols;
     let balDateCols;
+    let showingNegative = false;
     let deliveryTable = createTable('deliveryTable', staticCols);
 
     const datepicker = createDatePicker("datePicker", function($picker) {
@@ -299,7 +288,7 @@
         $(document).on('click', '#toggleExtraDates', function() {
             const $btn = $(this);
             const $icon = $btn.find('i');
-            const $text = $btn.find('span').last();
+            const $text = $btn.find('span');
 
             [...planDateCols.cols.slice(5), ...balDateCols.cols.slice(5)]
             .forEach(col => deliveryTable.getColumn(col.field).toggle());
@@ -309,12 +298,33 @@
             if (isOneMonth) {
                 $icon.removeClass('fa-calendar-days').addClass('fa-calendar-week');
                 $btn.removeClass('btn-inverse').addClass('btn-danger');
-                $text.text('Show 5 Days');
+                $text.text('Show 5 Days Range');
             } else {
                 $icon.removeClass('fa-calendar-week').addClass('fa-calendar-days');
                 $btn.removeClass('btn-danger').addClass('btn-inverse');
-                $text.text('Show 1 Month');
+                $text.text('Show 1 Month Range');
             }
+        });
+
+        $(document).on('click', '#toggleRowsBtn', function() {
+            const delivery_plan = JSON.parse(localStorage.getItem("delivery_plan"));
+            const delivery_plan_negative = JSON.parse(localStorage.getItem("delivery_plan_negative"));
+            const $btn = $(this);
+            const $icon = $btn.find('i');
+            const $text = $btn.find('span');
+
+            if (showingNegative) {
+                deliveryTable.setData(delivery_plan);
+                $icon.removeClass('fa-list').addClass('fa-magnifying-glass-minus');
+                $btn.removeClass('btn-light').addClass('btn-danger');
+                $text.text('Show Rows with Negative Balance');
+            } else {
+                deliveryTable.setData(delivery_plan_negative);
+                $icon.removeClass('fa-magnifying-glass-minus').addClass('fa-list');
+                $btn.removeClass('btn-danger').addClass('btn-light');
+                $text.text('Show All Rows');
+            }
+            showingNegative = !showingNegative;
         });
 
     });
