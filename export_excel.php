@@ -112,11 +112,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($colIndex >= 6) {
                 $cell->getStyle()->getNumberFormat()->setFormatCode('#,##0;(#,##0);"-";@');
-                $cell
-                    ->getStyle()
-                    ->getAlignment()
-                    ->setHorizontal($colIndex < 6 ? Alignment::HORIZONTAL_LEFT : Alignment::HORIZONTAL_RIGHT)
-                    ->setVertical(Alignment::VERTICAL_CENTER);
 
                 if ($value === '' || $value === '-') {
                     $cell->setValue(0);
@@ -129,6 +124,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $cell->setValue($value);
             }
+
+            $cell->getStyle()
+                ->getAlignment()
+                ->setHorizontal($colIndex < 6 ? Alignment::HORIZONTAL_LEFT : Alignment::HORIZONTAL_RIGHT)
+                ->setVertical(Alignment::VERTICAL_CENTER);
 
             if ($colIndex != 3) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
