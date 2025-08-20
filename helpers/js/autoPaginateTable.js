@@ -20,7 +20,7 @@ const AutoPaginator = {
 $(document).on('click', '#toggleAutoPaginate', function () {
     const $btn = $(this);
     const $icon = $btn.find('i');
-    const $text = $('#autoPaginateText');
+    const $text = $btn.find('span');
 
     if ($icon.hasClass('fa-play')) {
         AutoPaginator.start(deliveryTable);

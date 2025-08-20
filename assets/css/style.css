@@ -148,10 +148,20 @@ body {
 }
 
 .tabulator .tabulator-footer .tabulator-paginator {
+    flex-wrap: wrap;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 5px;
+}
+
+.tabulator .tabulator-footer .tabulator-footer-contents {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    overflow-y: scroll;
 }
 
 .tabulator .tabulator-footer .tabulator-paginator label {

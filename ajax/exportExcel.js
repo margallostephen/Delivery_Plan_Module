@@ -9,7 +9,7 @@ function exportExcel(tableData, importDatetime) {
         now.getSeconds().toString().padStart(2, '0');
 
     $("#btn-text-export").text('Exporting...');
-    $('#btn-dl-icon-export').removeClass('fa-download').addClass('fa-spinner fa-spin');
+    $('#btn-dl-icon-export').removeClass('fa-file-export').addClass('fa-spinner fa-spin');
     $('#exportExcelBtn').prop('disabled', true);
 
     fetch('export_excel.php', {
@@ -37,7 +37,7 @@ function exportExcel(tableData, importDatetime) {
         console.error('Download failed:', error);
     }).finally(() => {
         $("#btn-text-export").text('Export Data');
-        $('#btn-dl-icon-export').removeClass('fa-spinner fa-spin').addClass('fa-download');
+        $('#btn-dl-icon-export').removeClass('fa-spinner fa-spin').addClass('fa-file-export');
         $('#exportExcelBtn').prop('disabled', false);
     });
 }
