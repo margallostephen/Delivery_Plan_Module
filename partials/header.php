@@ -27,6 +27,7 @@ require_once __DIR__ . '/../utils/php/randomNumGenerator.php';
 <!-- jQuery -->
 <script src="assets/js/jquery-2.1.4.min.js<?php echo randomNum(); ?>"></script>
 <script src="assets/js/jquery-ui.min.js<?php echo randomNum(); ?>"></script>
+<script src="assets/js/jquery.mobile.custom.min.js<?php echo randomNum(); ?>"></script>
 
 <!-- Bootstrap JS -->
 <script src="assets/js/bootstrap.min.js<?php echo randomNum(); ?>"></script>
