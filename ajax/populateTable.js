@@ -2,7 +2,7 @@ function populateTable(deliveryTable, datepicker, staticCols) {
     $("#deliveryTable").hide();
     $("#loader").show();
     $("#noDataMessage").hide();
-    $("#exportExcelBtn, #refreshTableBtn, #toggleExtraDates").prop("disabled", true);
+    $("#exportExcelBtn, #refreshTableBtn, #toggleExtraDatesBtn").prop("disabled", true);
 
     $.ajax({
         url: 'data.php',
@@ -60,20 +60,27 @@ function populateTable(deliveryTable, datepicker, staticCols) {
                     $("#deliveryTable").show();
                 });
 
-                $(deliveryTable.element)
-                    .find('.tabulator-paginator #toggleAutoPaginate')
-                    .length || $(deliveryTable.element)
-                        .find('.tabulator-paginator')
-                        .append(`
-                            <button id="toggleAutoPaginate" class="btn btn-sm btn-primary">
-                                <i class="fa-solid fa-play"></i>
-                                <span>Auto Paginate</span>
-                            </button>
-                        `);
-
                 const $paginator = $(deliveryTable.element).find('.tabulator-paginator');
-                const $toggleExtraDatesBtn = $paginator.find('#toggleExtraDates');
-                const $toggleRowsBtn = $paginator.find("#toggleRowsBtn")
+                const $autoPaginateBtn = $paginator.find('#toggleAutoPaginate');
+                const $toggleExtraDatesBtn = $paginator.find('#toggleExtraDatesBtn');
+                const $toggleRowsBtn = $paginator.find("#toggleRowsBtn");
+                const $setupTableBtn = $paginator.find("#setupTableBtn");
+
+                if ($autoPaginateBtn.length) {
+                    const $icon = $autoPaginateBtn.find('i');
+                    const $text = $autoPaginateBtn.find('span');
+
+                    $icon.removeClass('fa-stop').addClass('fa-play');
+                    $autoPaginateBtn.removeClass('btn-danger').addClass('btn-primary');
+                    $text.text('Auto Paginate');
+                } else {
+                    $paginator.append(`
+                        <button type="button" class="btn btn-sm btn-primary" id="toggleAutoPaginate">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Auto Paginate</span>
+                        </button>
+                    `);
+                }
 
                 if ($toggleExtraDatesBtn.length) {
                     const $icon = $toggleExtraDatesBtn.find('i');
@@ -84,7 +91,7 @@ function populateTable(deliveryTable, datepicker, staticCols) {
                     $text.text('Show 5 Days Range');
                 } else {
                     $paginator.append(`
-                        <button type="button" class="btn btn-sm btn-danger" id="toggleExtraDates">
+                        <button type="button" class="btn btn-sm btn-danger" id="toggleExtraDatesBtn">
                             <i class="ace-icon fa fa-calendar-week"></i>
                             <span>Show 5 Days Range</span>
                         </button>
@@ -100,10 +107,26 @@ function populateTable(deliveryTable, datepicker, staticCols) {
                     $text.text('Show Rows with Negative Balance');
                 } else {
                     $paginator.append(`
-                            <button type="button" class="btn btn-sm btn-danger" id="toggleRowsBtn">
-                                <i class="fa-solid fa-magnifying-glass-minus"></i>
-                                <span>Show Row with Negative Balance</span>
-                            </button>
+                        <button type="button" class="btn btn-sm btn-danger" id="toggleRowsBtn">
+                            <i class="fa-solid fa-magnifying-glass-minus"></i>
+                            <span>Show Row with Negative Balance</span>
+                        </button>
+                    `);
+                }
+
+                if ($setupTableBtn.length) {
+                    const $icon = $setupTableBtn.find('i');
+                    const $text = $setupTableBtn.find('span');
+
+                    $icon.removeClass('fa-gauge-simple').addClass('fa-gauge-high');
+                    $setupTableBtn.removeClass('btn-danger').addClass('btn-success');
+                    $text.text('Dashboard Setup');
+                } else {
+                    $paginator.append(`
+                        <button type="button" class="btn btn-sm btn-success" id="setupTableBtn">
+                            <i class="fa-solid fa-gauge-high"></i>
+                            <span>Dashboard Setup</span>
+                        </button>
                     `);
                 }
             } else {
@@ -119,7 +142,7 @@ function populateTable(deliveryTable, datepicker, staticCols) {
         complete: function () {
             $("#refreshTableBtn").find("span").text("Refresh Table");
             $("#refreshTableBtn i").removeClass("fa-spin");
-            $("#exportExcelBtn, #refreshTableBtn, #toggleExtraDates").prop("disabled", false);
+            $("#exportExcelBtn, #refreshTableBtn, #toggleExtraDatesBtn").prop("disabled", false);
         }
     });
 }

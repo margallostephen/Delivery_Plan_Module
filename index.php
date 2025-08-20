@@ -133,6 +133,8 @@
 <script type="text/javascript" src="helpers/js/createDatePicker.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="helpers/js/createTable.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="helpers/js/autoPaginateTable.js<?php echo randomNum(); ?>"></script>
+<script type="text/javascript" src="helpers/js/autoSetupTable.js<?php echo randomNum(); ?>"></script>
+<script type="text/javascript" src="helpers/js/slideshowTable.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="utils/js/letterKeyConverter.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="utils/js/createPlanQuantityColumn.js<?php echo randomNum(); ?>"></script>
 
@@ -283,9 +285,10 @@
             $("#refreshTableBtn i").addClass("fa-spin");
             $btn.find("span").text("Refreshing...");
             populateTable(deliveryTable, datepicker, staticCols);
+            AutoPaginator.stop();
         });
 
-        $(document).on('click', '#toggleExtraDates', function() {
+        $(document).on('click', '#toggleExtraDatesBtn', function() {
             const $btn = $(this);
             const $icon = $btn.find('i');
             const $text = $btn.find('span');
@@ -325,6 +328,11 @@
                 $text.text('Show All Rows');
             }
             showingNegative = !showingNegative;
+        });
+
+        $(document).on('click', '#setupTableBtn', function() {
+            autoSetupTable(deliveryTable);
+            schedule(deliveryTable);
         });
 
     });

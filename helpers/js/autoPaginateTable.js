@@ -25,12 +25,12 @@ $(document).on('click', '#toggleAutoPaginate', function () {
     if ($icon.hasClass('fa-play')) {
         AutoPaginator.start(deliveryTable);
         $btn.toggleClass('btn-primary btn-danger');
-        $icon.removeClass('fa-play').addClass('fa-pause');
+        $icon.removeClass('fa-play').addClass('fa-stop');
         $text.text('Stop Auto Paginate');
     } else {
         AutoPaginator.stop();
         $btn.toggleClass('btn-danger btn-primary');
-        $icon.removeClass('fa-pause').addClass('fa-play');
+        $icon.removeClass('fa-stop').addClass('fa-play');
         $text.text('Auto Paginate');
     }
 });
