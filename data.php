@@ -75,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result = $stmt->get_result();
 
     $deliveryData = [];
+    $deliveryDataNegativeBalance = [];
     $lastPlanDate = null;
 
     while ($row = $result->fetch_assoc()) {
@@ -147,18 +148,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         unset($item);
 
-        $deliveryDataNegativeBalance = [];
-        $hasNegativeBalance = false;
         foreach ($deliveryData as &$item) {
             $letterIndex = 0;
             foreach ($item['_plan_dates'] as $date => $planQty) {
                 $col = numToAlpha($letterIndex + 7);
-                $item[$col] = ($planQty === 0) ? "-" : $planQty;
+                $item[$col] = $planQty;
                 $letterIndex++;
             }
 
             $fgCol = numToAlpha($letterIndex + 7);
-            $item[$fgCol] = ($item['_start_fg'] === 0) ? "-" : $item['_start_fg'];
+            $item[$fgCol] = $item['_start_fg'];
             $letterIndex++;
 
             $negativeCount = 0;
@@ -166,8 +165,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             foreach ($item['_balance_dates'] as $date => $balance) {
                 $col = numToAlpha($letterIndex + 7);
-                $item[$col] = ($balance === 0) ? "-" : $balance;
-                if ($counter <= 5 && $balance < 0) {
+                $item[$col] = $balance;
+                if ($counter < 5 && $balance < 0) {
                     $negativeCount++;
                 }
                 $letterIndex++;
@@ -176,11 +175,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             unset($item['_plan_dates'], $item['_balance_dates'], $item['_start_fg'], $item['_start_backlog']);
 
-            if ($negativeCount >= 5) {
+            if ($negativeCount > 0) {
                 $deliveryDataNegativeBalance[] = $item;
             }
-
-            $hasNegativeBalance = false;
         }
         unset($item);
 

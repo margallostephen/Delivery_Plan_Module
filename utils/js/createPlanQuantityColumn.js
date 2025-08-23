@@ -39,9 +39,9 @@ function pushQuantityColumn(startDateStr, endDateStr, startIndex, balanceCol = f
 
                 return isNegative
                     ? `(${new Intl.NumberFormat('en-US').format(-val)})`
-                    : (typeof val === 'number'
+                    : (val > 0
                         ? new Intl.NumberFormat('en-US').format(val)
-                        : val);
+                        : "-");
             }
         });
 
