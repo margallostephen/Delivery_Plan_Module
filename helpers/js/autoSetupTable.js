@@ -3,12 +3,18 @@ async function autoSetupTable(table) {
 
     await new Promise(r => table.on('dataLoaded', r));
 
-    $('#toggleRowsBtn, #toggleExtraDatesBtn').each((_, el) => el.click());
+    if (localStorage.getItem("colRange") === "1MonthRange") {
+        $('#toggleExtraDatesBtn').trigger("click");
+    }
 
-    await new Promise(r => setTimeout(r, 200));
+    if (localStorage.getItem("dataToSet") === "allRows") {
+        $('#toggleRowsBtn').trigger("click");
+    }
+
+    await new Promise(r => setTimeout(r, 500));
 
     const holder = $(table.element).find('.tabulator-tableHolder')[0];
-    holder.scrollTo({ left: holder.scrollWidth, behavior: 'smooth' });
+    $(holder).animate({ scrollLeft: holder.scrollWidth }, 500);
 
-    $('#toggleAutoPaginate').trigger("click");
+    $('#toggleAutoPaginateBtn').trigger("click");
 }

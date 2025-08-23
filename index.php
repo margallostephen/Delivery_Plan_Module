@@ -134,6 +134,7 @@
 <script type="text/javascript" src="helpers/js/createTable.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="helpers/js/autoPaginateTable.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="helpers/js/autoSetupTable.js<?php echo randomNum(); ?>"></script>
+<script type="text/javascript" src="ajax/refreshData.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="helpers/js/slideshowTable.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="utils/js/letterKeyConverter.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="utils/js/createPlanQuantityColumn.js<?php echo randomNum(); ?>"></script>
@@ -221,12 +222,15 @@
     let autoPaginateId;
     let planDateCols;
     let balDateCols;
-    let showingNegative = false;
     let deliveryTable = createTable('deliveryTable', staticCols);
 
     const datepicker = createDatePicker("datePicker", function($picker) {
         populateTable(deliveryTable, $picker, staticCols);
     });
+
+    if (localStorage.getItem("tblModeToSet")) {
+        localStorage.removeItem("tblModeToSet");
+    }
 
     $(document).ready(function() {
         populateTable(deliveryTable, datepicker, staticCols);
@@ -292,48 +296,70 @@
             const $btn = $(this);
             const $icon = $btn.find('i');
             const $text = $btn.find('span');
+            const colRange = localStorage.getItem("colRange");
 
-            [...planDateCols.cols.slice(5), ...balDateCols.cols.slice(5)]
-            .forEach(col => deliveryTable.getColumn(col.field).toggle());
-
-            const isOneMonth = $btn.hasClass('btn-inverse');
-
-            if (isOneMonth) {
-                $icon.removeClass('fa-calendar-days').addClass('fa-calendar-week');
-                $btn.removeClass('btn-inverse').addClass('btn-danger');
-                $text.text('Show 5 Days Range');
-            } else {
+            if (colRange === "1MonthRange") {
+                localStorage.setItem("colRange", "5DaysRange");
                 $icon.removeClass('fa-calendar-week').addClass('fa-calendar-days');
                 $btn.removeClass('btn-danger').addClass('btn-inverse');
                 $text.text('Show 1 Month Range');
+                [...planDateCols.cols.slice(5), ...balDateCols.cols.slice(5)]
+                .forEach(col => deliveryTable.hideColumn(deliveryTable.getColumn(col.field)));
+            } else {
+                localStorage.setItem("colRange", "1MonthRange");
+                $icon.removeClass('fa-calendar-days').addClass('fa-calendar-week');
+                $btn.removeClass('btn-inverse').addClass('btn-danger');
+                $text.text('Show 5 Days Range');
+                [...planDateCols.cols.slice(5), ...balDateCols.cols.slice(5)]
+                .forEach(col => deliveryTable.showColumn(deliveryTable.getColumn(col.field)));
             }
         });
 
         $(document).on('click', '#toggleRowsBtn', function() {
-            const delivery_plan = JSON.parse(localStorage.getItem("delivery_plan"));
-            const delivery_plan_negative = JSON.parse(localStorage.getItem("delivery_plan_negative"));
             const $btn = $(this);
             const $icon = $btn.find('i');
             const $text = $btn.find('span');
+            const delivery_plan = JSON.parse(localStorage.getItem("delivery_plan"));
+            const delivery_plan_negative = JSON.parse(localStorage.getItem("delivery_plan_negative"));
+            const dataToSet = localStorage.getItem("dataToSet");
 
-            if (showingNegative) {
+            if (dataToSet === "negativeBalRows") {
+                localStorage.setItem("dataToSet", "allRows");
                 deliveryTable.setData(delivery_plan);
                 $icon.removeClass('fa-list').addClass('fa-magnifying-glass-minus');
                 $btn.removeClass('btn-light').addClass('btn-danger');
                 $text.text('Show Rows with Negative Balance');
             } else {
+                localStorage.setItem("dataToSet", "negativeBalRows");
                 deliveryTable.setData(delivery_plan_negative);
                 $icon.removeClass('fa-magnifying-glass-minus').addClass('fa-list');
                 $btn.removeClass('btn-danger').addClass('btn-light');
                 $text.text('Show All Rows');
             }
-            showingNegative = !showingNegative;
         });
 
         $(document).on('click', '#setupTableBtn', function() {
-            autoSetupTable(deliveryTable);
-            schedule(deliveryTable);
-        });
+            const $btn = $(this);
+            const $icon = $btn.find('i');
+            const $text = $btn.find('span');
+            const tblModeToSet = localStorage.getItem("tblModeToSet");
 
+            if (tblModeToSet === "rawData") {
+                $icon.removeClass('fa-gauge-simple').addClass('fa-gauge-high');
+                $btn.removeClass('btn-danger').addClass('btn-success');
+                $text.text('Negative Balance Table');
+                cancelSchedule();
+                localStorage.setItem("tblModeToSet", "negativeBalance");
+                $(".header-menu-con, #toggleExtraDatesBtn, #toggleRowsBtn").show();
+            } else {
+                $(".header-menu-con, #toggleExtraDatesBtn, #toggleRowsBtn").hide();
+                $icon.removeClass('fa-gauge-high').addClass('fa-gauge-simple');
+                $btn.removeClass('btn-success').addClass('btn-danger');
+                $text.text('Raw Data Table');
+                autoSetupTable(deliveryTable);
+                schedule(deliveryTable);
+                localStorage.setItem("tblModeToSet", "rawData");
+            }
+        });
     });
 </script>

@@ -4,9 +4,15 @@ const AutoPaginator = {
         this.stop();
 
         this.id = setInterval(() => {
-            table.setPage(
-                table.getPage() === table.getPageMax() ? 1 : table.getPage() + 1
-            );
+            const currentPage = table.getPage();
+            const maxPage = table.getPageMax();
+
+            if (currentPage === maxPage) {
+                table.setPage(1);
+                refreshData(table);
+            } else {
+                table.setPage(currentPage + 1);
+            }
         }, interval);
     },
     stop() {
@@ -17,7 +23,7 @@ const AutoPaginator = {
     }
 };
 
-$(document).on('click', '#toggleAutoPaginate', function () {
+$(document).on('click', '#toggleAutoPaginateBtn', function () {
     const $btn = $(this);
     const $icon = $btn.find('i');
     const $text = $btn.find('span');
@@ -34,5 +40,3 @@ $(document).on('click', '#toggleAutoPaginate', function () {
         $text.text('Auto Paginate');
     }
 });
-
-

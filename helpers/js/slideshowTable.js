@@ -1,27 +1,30 @@
+let scheduleTimerId = null;
+
+function getNextTarget() {
+    const t = new Date();
+    t.setHours(8, 30, 0, 0);
+    if (t <= new Date()) {
+        t.setDate(t.getDate() + 1);
+    }
+    return t;
+}
+
 function schedule(table) {
     const key = "nextTrigger";
-    const stored = localStorage.getItem(key);
+
+    if (scheduleTimerId) {
+        clearTimeout(scheduleTimerId);
+        scheduleTimerId = null;
+    }
+
     const now = new Date();
     let target;
 
+    const stored = localStorage.getItem(key);
     if (stored) {
         target = new Date(parseInt(stored, 10));
     } else {
-        const morning = new Date(now);
-        morning.setHours(8, 10, 0, 0);
-
-        const evening = new Date(now);
-        evening.setHours(19, 10, 0, 0);
-
-        if (now < morning) {
-            target = morning;
-        } else if (now < evening) {
-            target = evening;
-        } else {
-            morning.setDate(morning.getDate() + 1);
-            target = morning;
-        }
-
+        target = getNextTarget();
         localStorage.setItem(key, target.getTime());
     }
 
@@ -29,29 +32,41 @@ function schedule(table) {
 
     if (delay <= 0) {
         autoSetupTable(table);
+        console.log("table refresh 1");
 
-        if (target.getHours() === 8) {
-            target.setHours(19, 10, 0, 0);
-        } else {
-            target.setHours(8, 10, 0, 0);
-            target.setDate(target.getDate() + 1);
-        }
-
+        target = getNextTarget();
         localStorage.setItem(key, target.getTime());
-        return schedule(table);
+
+        scheduleTimerId = setTimeout(() => schedule(table), target - new Date());
+        return;
     }
 
-    setTimeout(() => {
+    scheduleTimerId = setTimeout(() => {
         autoSetupTable(table);
+        console.log("table refresh 2");
 
-        if (target.getHours() === 8) {
-            target.setHours(19, 10, 0, 0);
-        } else {
-            target.setHours(8, 10, 0, 0);
-            target.setDate(target.getDate() + 1);
-        }
-
+        target = getNextTarget();
         localStorage.setItem(key, target.getTime());
         schedule(table);
     }, delay);
+
+}
+
+function cancelSchedule() {
+    if (scheduleTimerId) {
+        clearTimeout(scheduleTimerId);
+        scheduleTimerId = null;
+        console.log("schedule cancelled");
+        localStorage.removeItem("nextTrigger");
+
+        if (localStorage.getItem("colRange") === "5DaysRange") {
+            $('#toggleExtraDatesBtn').trigger("click");
+        }
+
+        if (localStorage.getItem("dataToSet") === "negativeBalRows") {
+            $('#toggleRowsBtn').trigger("click");
+        }
+
+        $('#toggleAutoPaginateBtn').trigger("click");
+    }
 }
