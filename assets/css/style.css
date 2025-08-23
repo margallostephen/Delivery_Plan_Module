@@ -164,6 +164,14 @@ body {
     overflow-y: scroll;
 }
 
+.tabulator .tabulator-footer-contents {
+    scrollbar-width: none;
+}
+
+.tabulator .tabulator-footer-contents::-webkit-scrollbar {
+    display: none;
+}
+
 .tabulator .tabulator-footer .tabulator-paginator label {
     margin: 0;
 }
