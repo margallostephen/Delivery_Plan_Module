@@ -91,6 +91,7 @@ body {
 .tabulator .tabulator-col {
     background-color: #F8F8F8 !important;
     border-right: 1px solid #ddd !important;
+    justify-content: flex-end !important;
 }
 
 .tabulator-col .tabulator-header-filter {

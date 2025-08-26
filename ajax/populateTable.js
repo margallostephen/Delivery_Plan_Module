@@ -46,7 +46,7 @@ function populateTable(deliveryTable, datepicker, staticCols) {
             const lastColDate = response.lastColDate;
 
             planDateCols = [];
-            planDateCols = pushQuantityColumn(startColDate, lastColDate, i);
+            planDateCols = pushQuantityColumn(startColDate, lastColDate, i, tableData);
             tabulatorCols = tabulatorCols.concat(planDateCols.cols);
             i = planDateCols.nextIndex;
 
@@ -67,7 +67,7 @@ function populateTable(deliveryTable, datepicker, staticCols) {
             });
 
             balDateCols = [];
-            balDateCols = pushQuantityColumn(startColDate, lastColDate, i, true);
+            balDateCols = pushQuantityColumn(startColDate, lastColDate, i, tableData, true);
             tabulatorCols = tabulatorCols.concat(balDateCols.cols);
             const allCols = staticCols.concat(tabulatorCols);
 

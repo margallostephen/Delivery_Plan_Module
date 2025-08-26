@@ -1,4 +1,4 @@
-function pushQuantityColumn(startDateStr, endDateStr, startIndex, balanceCol = false) {
+function pushQuantityColumn(startDateStr, endDateStr, startIndex, tableData, balanceCol = false) {
     if (!startDateStr || !endDateStr) return { cols: [], nextIndex: startIndex };
 
     const [startYear, startMonth, startDay] = startDateStr.split('-').map(Number);
@@ -21,7 +21,33 @@ function pushQuantityColumn(startDateStr, endDateStr, startIndex, balanceCol = f
         const dayName = dt.toLocaleDateString(undefined, { weekday: 'short' });
 
         cols.push({
-            title: `${formattedDate}<hr>${dayName}`,
+            title: (() => {
+                if (balanceCol) {
+                    const fieldName = numToAlpha(i);
+                    let negCount = 0;
+                    let posCount = 0;
+
+                    tableData.forEach(row => {
+                        const val = row[fieldName];
+                        if (typeof val === 'number') {
+                            if (val < 0) negCount++;
+                            if (val > 0) posCount++;
+                        }
+                    });
+
+                    return `
+                        <div style="text-align:center;">
+                            <div id="neg-count-${fieldName}" style="color:red;">(${negCount})</div>
+                            <div id="pos-count-${fieldName}">${posCount}</div>
+                            <hr>
+                            <div>${formattedDate}</div>
+                            <div>${dayName}</div>
+                        </div>
+                    `;
+                } else {
+                    return `${formattedDate}<hr>${dayName}`;
+                }
+            })(),
             field: numToAlpha(i++),
             hozAlign: "right",
             vertAlign: "middle",

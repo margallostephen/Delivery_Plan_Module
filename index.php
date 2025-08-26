@@ -134,6 +134,7 @@
 <script type="text/javascript" src="helpers/js/createTable.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="helpers/js/autoPaginateTable.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="helpers/js/autoSetupTable.js<?php echo randomNum(); ?>"></script>
+<script type="text/javascript" src="helpers/js/updateHeaderCounts.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="ajax/refreshData.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="helpers/js/slideshowTable.js<?php echo randomNum(); ?>"></script>
 <script type="text/javascript" src="utils/js/letterKeyConverter.js<?php echo randomNum(); ?>"></script>
@@ -237,6 +238,8 @@
 
         addResetFilter(deliveryTable);
 
+
+
         $("#importExcelBtn").click(function() {
             $("#modalImport").modal("show");
         });
@@ -336,6 +339,8 @@
                 $btn.removeClass('btn-danger').addClass('btn-light');
                 $text.text('Show All Rows');
             }
+
+            updateHeaderCounts(deliveryTable);
         });
 
         $(document).on('click', '#setupTableBtn', function() {
@@ -360,6 +365,10 @@
                 schedule(deliveryTable);
                 localStorage.setItem("tblModeToSet", "rawData");
             }
+        });
+
+        deliveryTable.on("renderComplete", function() {
+            updateHeaderCounts(deliveryTable, true);
         });
     });
 </script>
