@@ -78,6 +78,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $deliveryDataNegativeBalance = [];
     $lastPlanDate = null;
 
+    $group = [
+        'EPSON' => 'EPSON',
+        'EPSON EPLB' => 'EPSON',
+        'EPSON IJP' => 'EPSON',
+        'EPSON VP' => 'EPSON',
+        'TRC' => 'EPSON',
+        'DAIHO' => 'EPSON',
+        'SUMITRONICS' => 'EPSON',
+        'PHILINAK' => 'EPSON',
+        'K&K' => 'EPSON',
+        'MATEX' => 'EPSON',
+        'TAIHAN' => 'EPSON',
+
+        'LSE' => 'PTK',
+        'LMS' => 'PTK',
+        'LS ELECTRIC' => 'PTK',
+
+        'PANASONIC MPU' => 'MPU',
+
+        'SERCOMM' => 'SERCOMM',
+
+        'VISHAY' => 'OTHERS',
+        'IMI' => 'OTHERS',
+        'EATON' => 'OTHERS',
+        'KURODA' => 'OTHERS',
+        'BROTHER' => 'OTHERS',
+        'TEMIC (CONTINENTAL)' => 'OTHERS',
+    ];
+
     while ($row = $result->fetch_assoc()) {
         $customer = $row['CUSTOMER'];
         $partNumber = $row['PART_NUMBER'];
@@ -89,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!isset($deliveryData[$compositeKey])) {
             $deliveryData[$compositeKey] = [
-                'a' => $row['RID'],
+                'a' => $group[$customer] ?? 'OTHERS',
                 'b' => $customer,
                 'c' => $partNumber,
                 'd' => $itemName,

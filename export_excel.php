@@ -35,7 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sheet->getDefaultRowDimension()->setRowHeight(15);
     $sheet->setTitle($importDate->format('Ymd_His'));
 
-    $headers = ['CUSTOMER', 'PART NUMBER', 'ITEM NAME', 'REFERENCE', 'LOCATION', 'BACKLOG'];
+    $headers = ['GROUP', 'CUSTOMER', 'PART NUMBER', 'ITEM NAME', 'REFERENCE', 'LOCATION', 'BACKLOG'];
+    $staticHeaderCount = count($headers);
     $planDays = [];
     $rowDataIndex = 5;
     $start = new DateTime($importDate->format('Y-m-d'));
@@ -90,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $sheet->setCellValue($headerCell, strtoupper($header));
 
-        if ($i < 6 || $dayIndex == 31) {
+        if ($i < $staticHeaderCount || $dayIndex == 31) {
             $sheet->mergeCells("{$headerCell}:{$cellDay}");
             $dayIndex = 0;
         } else {
@@ -107,12 +108,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $colIndex = 1;
         $startCol = $endCol = null;
         foreach ($row as $key => $value) {
-            if ($key === 'a')
-                continue;
             $col = Coordinate::stringFromColumnIndex($colIndex);
             $cell = $sheet->getCell("{$col}{$rowIndex}");
 
-            if ($colIndex >= 6) {
+            if ($colIndex >= $staticHeaderCount) {
                 $cell->getStyle()->getNumberFormat()->setFormatCode('#,##0;(#,##0);"-";@');
 
                 if ($value === '' || $value === '-') {
@@ -129,10 +128,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $cell->getStyle()
                 ->getAlignment()
-                ->setHorizontal($colIndex < 6 ? Alignment::HORIZONTAL_LEFT : Alignment::HORIZONTAL_RIGHT)
+                ->setHorizontal($colIndex < $staticHeaderCount ? Alignment::HORIZONTAL_LEFT : Alignment::HORIZONTAL_RIGHT)
                 ->setVertical(Alignment::VERTICAL_CENTER);
 
-            if ($colIndex != 3) {
+            if ($colIndex != 4) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
             } else {
                 $sheet->getColumnDimension($col)->setWidth(70);
@@ -236,7 +235,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $sheet->calculateColumnWidths();
     $sheet->setAutoFilter("A4:{$lastCol}4");
-    $sheet->freezePane("D{$rowDataIndex}");
+    $sheet->freezePane("E{$rowDataIndex}");
     $sheet->setSelectedCell("A3");
 
     $excelData = generateExcelReport($spreadsheet);

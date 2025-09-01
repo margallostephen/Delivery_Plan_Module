@@ -147,6 +147,18 @@
 
 <script type="text/javascript">
     const staticCols = [{
+            title: "GROUP",
+            field: "a",
+            hozAlign: "left",
+            vertAlign: "middle",
+            headerFilter: "list",
+            headerFilterPlaceholder: "Select",
+            headerFilterParams: {
+                valuesLookup: true,
+            },
+            frozen: true
+        },
+        {
             title: "CUSTOMER",
             field: "b",
             hozAlign: "left",
