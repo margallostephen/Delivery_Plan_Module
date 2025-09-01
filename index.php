@@ -380,7 +380,7 @@
         });
 
         deliveryTable.on("renderComplete", function() {
-            updateHeaderCounts(deliveryTable, true);
+            updateHeaderCounts(deliveryTable);
         });
     });
 </script>
