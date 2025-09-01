@@ -1,4 +1,6 @@
 <?php
+ini_set('max_execution_time', 300);
+set_time_limit(300);
 require 'vendor/autoload.php';
 require_once __DIR__ . '/utils/php/generateExcelReport.php';
 require_once __DIR__ . '/utils/php/fetchDataPhpScript.php';
@@ -37,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $planDays = [];
     $rowDataIndex = 5;
     $start = new DateTime($importDate->format('Y-m-d'));
-    $end   = (clone $start)->modify('+1 month');
+    $end = (clone $start)->modify('+31 days');
 
     for ($dt = clone $start; $dt < $end; $dt->modify('+1 day')) {
         $md = $dt->format('m-d');
